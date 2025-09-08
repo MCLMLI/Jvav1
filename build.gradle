@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+}
+
+group = 'xyz.jvav'
+version = '1.0.0'
+
+// 确保以 Java 8 进行编译与目标兼容
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+// 使用 JDK 9+ 编译器时，确保以 --release 8 生成 Java 8 兼容字节码
+// 同时统一源码编码为 UTF-8
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    if (JavaVersion.current().isJava9Compatible()) {
+        // 仅在 JDK 9+ 时可用
+        options.release = 8
+    }
+}
+
+// 使生成的 JAR 可执行（jvavc CLI）
+jar {
+    manifest {
+        attributes 'Main-Class': 'xyz.jvav.cli.Jvavc'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+// 不使用 test 分支：清空 test 源集并禁用测试相关任务
+sourceSets {
+    test {
+        java.srcDirs = []
+        resources.srcDirs = []
+    }
+}
+
+tasks.matching { it.name in [
+        'compileTestJava', 'processTestResources', 'testClasses', 'test'
+] }.configureEach {
+    enabled = false
+}
