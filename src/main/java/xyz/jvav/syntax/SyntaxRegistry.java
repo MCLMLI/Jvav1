@@ -1,24 +1,26 @@
 package xyz.jvav.syntax;
 
-import xyz.jvav.syntax.impl.DefaultChineseSyntax;
-import xyz.jvav.syntax.impl.DefaultDocCommentNormalizer;
+import java.util.*;
 
 /**
- * 语法定义注册中心：集中管理当前生效的关键字/符号/文档注释规范器。
+ * 使用 ServiceLoader 发现并加载语法映射构造器（映射表）。
+ * 仅依赖 META-INF/services 注册，JAR 内稳定可用。
  */
 public final class SyntaxRegistry {
-    private static volatile KeywordProvider keywordProvider = new DefaultChineseSyntax();
-    private static volatile PunctuationProvider punctuationProvider = new DefaultChineseSyntax();
-    private static volatile DocCommentNormalizer docCommentNormalizer = new DefaultDocCommentNormalizer();
+    private final Map<String, String> cn2en = new LinkedHashMap<>();
 
     private SyntaxRegistry() {}
 
-    public static KeywordProvider keywords() { return keywordProvider; }
-    public static PunctuationProvider punctuation() { return punctuationProvider; }
-    public static DocCommentNormalizer doc() { return docCommentNormalizer; }
+    public static SyntaxRegistry load() {
+        SyntaxRegistry reg = new SyntaxRegistry();
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        if (cl == null) cl = SyntaxRegistry.class.getClassLoader();
+        ServiceLoader<SyntaxContributor> loader = ServiceLoader.load(SyntaxContributor.class, cl);
+        for (SyntaxContributor c : loader) {
+            try { c.contribute(reg.cn2en); } catch (Throwable ignored) {}
+        }
+        return reg;
+    }
 
-    // 允许在需要时替换（例如将来支持多语言/方言切换）
-    public static void setKeywordProvider(KeywordProvider kp) { if (kp != null) keywordProvider = kp; }
-    public static void setPunctuationProvider(PunctuationProvider pp) { if (pp != null) punctuationProvider = pp; }
-    public static void setDocCommentNormalizer(DocCommentNormalizer n) { if (n != null) docCommentNormalizer = n; }
+    public Map<String, String> mappings() { return Collections.unmodifiableMap(cn2en); }
 }

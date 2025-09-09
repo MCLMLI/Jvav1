@@ -37,6 +37,25 @@ public final class Jvavc {
             return EXIT_ARG_ERROR;
         }
 
+        // 参数防呆：-jar/-o 必须是 .jar，且不得指向 .jvav 或与源文件冲突
+        if (cfg.outputJar != null) {
+            Path jar = cfg.outputJar.toAbsolutePath().normalize();
+            String name = jar.getFileName() != null ? jar.getFileName().toString().toLowerCase(Locale.ROOT) : "";
+            if (!name.endsWith(".jar")) {
+                System.err.println("[jvavc] 错误：-jar/-打包 后应为 .jar 文件路径。例如：-jar build/hello.jar");
+                return EXIT_ARG_ERROR;
+            }
+            for (Path srcArg : cfg.sources) {
+                if (srcArg != null && Files.isRegularFile(srcArg)) {
+                    Path sp = srcArg.toAbsolutePath().normalize();
+                    if (sp.equals(jar)) {
+                        System.err.println("[jvavc] 错误：输出 JAR 与源文件相同，疑似误把 -jar 指向了 .jvav 源。请改用：-jar <输出.jar> <源...>");
+                        return EXIT_ARG_ERROR;
+                    }
+                }
+            }
+        }
+
         SourceCollector.Sources sc = SourceCollector.collect(cfg.sources);
         List<Path> javaFiles = new ArrayList<>(sc.javaFiles);
         List<Path> jvavFiles = new ArrayList<>(sc.jvavFiles);
@@ -53,9 +72,15 @@ public final class Jvavc {
         if (!jvavFiles.isEmpty()) {
             genSrcDir = (cfg.genSrcDir != null) ? cfg.genSrcDir : Files.createTempDirectory("jvavc-gensrc-");
             if (cfg.verbose) System.out.println("[jvavc] 生成源目录: " + genSrcDir.toAbsolutePath());
-            List<Path> generated = JvavTranslator.translateJvavToJava(jvavFiles, cfg.sources, genSrcDir, cfg.encoding);
-            if (cfg.verbose) System.out.println("[jvavc] 生成 Java 源文件数量: " + generated.size());
-            javaFiles.addAll(generated);
+            try {
+                List<Path> generated = JvavTranslator.translateJvavToJava(jvavFiles, cfg.sources, genSrcDir, cfg.encoding);
+                if (cfg.verbose) System.out.println("[jvavc] 生成 Java 源文件数量: " + generated.size());
+                javaFiles.addAll(generated);
+            } catch (IllegalArgumentException iae) {
+                System.err.println("[jvavc] 错误：" + iae.getMessage());
+                if (genSrcDir != null && cfg.genSrcDir == null) IOUtils.deleteRecursively(genSrcDir);
+                return EXIT_ARG_ERROR;
+            }
         }
 
         Path classesDir = cfg.classesDir != null ? cfg.classesDir : Files.createTempDirectory("jvavc-classes-");
