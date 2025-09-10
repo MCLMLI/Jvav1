@@ -50,9 +50,11 @@ public final class Lang implements SyntaxContributor {
 
 
         /* ===== 3. 线程与进程 ===== */
-        map.put("线程", "Thread");
+        map.put("线程类", "Thread");
+        map.put("多线程类", "Thread");
 
-        map.put("可运行", "Runnable");
+        map.put("线程方法", "Runnable");
+        map.put("多线程方法", "Runnable");
 
         map.put("进程", "Process");
 
@@ -60,9 +62,11 @@ public final class Lang implements SyntaxContributor {
 
 
         /* ===== 4. 比较与执行 ===== */
-        map.put("可比较", "Comparable");
+        map.put("单排序", "Comparable");
+        map.put("内部排序", "Comparable");
 
-        map.put("字符序列", "CharSequence");
+        map.put("多排序", "CharSequence");
+        map.put("外部排序", "CharSequence");
 
         map.put("可调用", "Callable");
 
@@ -74,34 +78,43 @@ public final class Lang implements SyntaxContributor {
 
 
         /* ===== 6. 常用异常 ===== */
+        map.put("类未找到", "ClassNotFoundException");
         map.put("类未找到异常", "ClassNotFoundException");
 
+        map.put("非法访问", "IllegalAccessException");
         map.put("非法访问异常", "IllegalAccessException");
 
         map.put("实例化异常", "InstantiationException");
 
         map.put("中断异常", "InterruptedException");
 
+        map.put("克隆不支持", "CloneNotSupportedException");
         map.put("克隆不支持异常", "CloneNotSupportedException");
 
 
         /* ===== 7. 常用运行时异常 ===== */
+        map.put("空指针", "NullPointerException");
         map.put("空指针异常", "NullPointerException");
 
+        map.put("数组越界", "ArrayIndexOutOfBoundsException");
         map.put("数组越界异常", "ArrayIndexOutOfBoundsException");
 
         map.put("类转换异常", "ClassCastException");
 
         map.put("算术异常", "ArithmeticException");
 
+        map.put("字符串索引越界", "StringIndexOutOfBoundsException");
         map.put("字符串索引越界异常", "StringIndexOutOfBoundsException");
 
 
         /* ===== 8. 常用错误 ===== */
+        map.put("内存溢出", "OutOfMemoryError");
         map.put("内存溢出错误", "OutOfMemoryError");
 
+        map.put("栈溢出", "StackOverflowError");
         map.put("栈溢出错误", "StackOverflowError");
 
+        map.put("无类定义", "NoClassDefFoundError");
         map.put("无类定义错误", "NoClassDefFoundError");
 
 
@@ -113,8 +126,12 @@ public final class Lang implements SyntaxContributor {
 
         /* ===== 10. 注解 ===== */
         map.put("@覆盖", "@Override");
+        map.put("@重载", "@Override");
 
+        map.put("@过时", "@Deprecated");
         map.put("@已过时", "@Deprecated");
+        map.put("@过期", "@Deprecated");
+        map.put("@已过期", "@Deprecated");
 
         map.put("@抑制警告", "@SuppressWarnings");
         
