@@ -38,7 +38,7 @@ public final class JvavTranslator {
             byte[] bytes = Files.readAllBytes(in);
             // 快速检测是否被 JAR/二进制覆盖
             if (looksLikeBinary(bytes)) {
-                throw new IllegalArgumentException("源文件 " + in + " 看起来不是有效的 UTF-8 文本，可能被误用 -jar 覆盖为二进制。请还原 .jvav 并使用：-jar <输出.jar> <源...>");
+                throw new IllegalArgumentException("源文件 " + in + " 看起来不是有效的 UTF-8 文本");
             }
             String content = new String(bytes, cs);
             if (containsReplacementOrNull(content)) {
@@ -58,17 +58,7 @@ public final class JvavTranslator {
         if (bytes == null || bytes.length == 0) return false;
         // ZIP/JAR 头 PK\u0003\u0004
         if (bytes.length >= 4 && bytes[0] == 'P' && bytes[1] == 'K' && bytes[2] == 3 && bytes[3] == 4) return true;
-        // 含有大量 NUL 字节或极低的可打印比例
-        int nul = 0, printable = 0;
-        for (int i = 0; i < Math.min(bytes.length, 4096); i++) {
-            int b = bytes[i] & 0xff;
-            if (b == 0) nul++;
-            if (b == 9 || b == 10 || b == 13 || (b >= 32 && b < 127)) printable++;
-        }
-        if (nul > 0) return true;
-        // 如果前 4KB 可打印字符比例很低（< 40%），也认为像二进制
-        int sample = Math.min(bytes.length, 4096);
-        return sample > 0 && printable * 100 / sample < 40;
+        return false;
     }
 
     private static boolean containsReplacementOrNull(String s) {

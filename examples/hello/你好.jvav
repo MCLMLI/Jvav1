@@ -1,8 +1,5 @@
-包 examples.hello;
-
-公共 类 你好 {
-    公共 静态 空 main(String[] args) {
-        系统.输出.打印行("你好，Jvav1！");
+public class HelloJvav {
+    public static void main(String[] args) {
+        System.out.println("hello jvav");
     }
 }
-
