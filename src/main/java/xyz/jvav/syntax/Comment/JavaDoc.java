@@ -4,7 +4,7 @@ import xyz.jvav.syntax.SyntaxContributor;
 
 import java.util.Map;
 
-public final class Javadoc implements SyntaxContributor {
+public final class JavaDoc implements SyntaxContributor {
     @Override
     public void contribute(Map<String, String> map) {
 

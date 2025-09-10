@@ -100,7 +100,7 @@ public final class JvavTranslator {
             s = s.substring(1);
         }
 
-        // 预构建 Javadoc 标签键列表
+        // 预构建 JavaDoc 标签键列表
         List<String> javadocTagKeys;
         javadocTagKeys = new ArrayList<>();
         for (String k : keysByLenDesc) {
@@ -178,7 +178,7 @@ public final class JvavTranslator {
                         break;
                     }
 
-                    // 在 Javadoc 中尝试替换 @... 或 {@... 标签
+                    // 在 JavaDoc 中尝试替换 @... 或 {@... 标签
                     if (inJavadoc) {
                         String matched = tryMatch(s, i, javadocTagKeys);
                         if (matched != null) {
