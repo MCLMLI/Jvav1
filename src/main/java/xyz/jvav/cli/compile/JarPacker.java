@@ -2,7 +2,6 @@ package xyz.jvav.cli.compile;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.Comparator;
 import java.util.jar.*;
 import java.util.stream.Stream;
 

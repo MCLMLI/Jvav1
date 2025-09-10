@@ -9,7 +9,6 @@ import xyz.jvav.cli.util.IOUtils;
 import xyz.jvav.converter.JvavTranslator;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
 
@@ -24,12 +23,6 @@ public final class Jvavc {
     private static final int EXIT_IO_ERROR = 4;
 
     private Jvavc() {}
-
-    public static int runCLI(String[] args) throws IOException {
-        Config cfg = ArgsParser.parse(args);
-        if (cfg == null) { usage(); return EXIT_ARG_ERROR; }
-        return run(cfg);
-    }
 
     private static int run(Config cfg) throws IOException {
         if (cfg.sources.isEmpty()) {

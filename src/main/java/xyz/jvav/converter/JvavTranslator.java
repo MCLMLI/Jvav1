@@ -36,7 +36,7 @@ public final class JvavTranslator {
         for (Path in : jvavFiles) {
             if (in == null || !Files.exists(in)) continue;
             byte[] bytes = Files.readAllBytes(in);
-            // 快速检测是否被 JAR/二进制覆盖
+            // 快速检测是否是二进制（例如误传了 JAR）
             if (looksLikeBinary(bytes)) {
                 throw new IllegalArgumentException("源文件 " + in + " 看起来不是有效的 UTF-8 文本");
             }
@@ -57,14 +57,13 @@ public final class JvavTranslator {
     private static boolean looksLikeBinary(byte[] bytes) {
         if (bytes == null || bytes.length == 0) return false;
         // ZIP/JAR 头 PK\u0003\u0004
-        if (bytes.length >= 4 && bytes[0] == 'P' && bytes[1] == 'K' && bytes[2] == 3 && bytes[3] == 4) return true;
-        return false;
+        return bytes.length >= 4 && bytes[0] == 'P' && bytes[1] == 'K' && bytes[2] == 3 && bytes[3] == 4;
     }
 
     private static boolean containsReplacementOrNull(String s) {
         if (s == null) return false;
         // \ufffd 为解码替代符；\u0000 为空字节痕迹
-        return s.indexOf('\ufffd') >= 0 || s.indexOf('\u0000') >= 0 || s.indexOf('\0') >= 0;
+        return s.indexOf('\ufffd') >= 0 || s.indexOf('\u0000') >= 0;
     }
 
     private static Path resolveTargetPath(Path input, List<Path> roots, Path genRoot) {
@@ -100,8 +99,21 @@ public final class JvavTranslator {
         if (s != null && !s.isEmpty() && s.charAt(0) == '\ufeff') {
             s = s.substring(1);
         }
-        StringBuilder out = new StringBuilder(s.length() + 64);
+
+        // 预构建 Javadoc 标签键列表
+        List<String> javadocTagKeys;
+        javadocTagKeys = new ArrayList<>();
+        for (String k : keysByLenDesc) {
+            if (k == null || k.isEmpty()) continue;
+            char k0 = k.charAt(0);
+            if (k0 == '@' || (k0 == '{' && k.length() > 1 && k.charAt(1) == '@')) {
+                javadocTagKeys.add(k);
+            }
+        }
+
+        StringBuilder out = new StringBuilder(Objects.requireNonNull(s).length() + 64);
         State st = State.CODE;
+        boolean inJavadoc = false;
         int n = s.length();
         int i = 0;
         while (i < n) {
@@ -113,7 +125,14 @@ public final class JvavTranslator {
                         if (i + 1 < n) {
                             char c2 = s.charAt(i + 1);
                             if (c2 == '/') { out.append("//"); i += 2; st = State.LINE_COMMENT; break; }
-                            if (c2 == '*') { out.append("/*"); i += 2; st = State.BLOCK_COMMENT; break; }
+                            if (c2 == '*') {
+                                boolean jd = (i + 2 < n && s.charAt(i + 2) == '*');
+                                out.append("/*");
+                                i += 2;
+                                st = State.BLOCK_COMMENT;
+                                inJavadoc = jd;
+                                break;
+                            }
                         }
                     }
                     // 字符串/字符字面量
@@ -150,9 +169,27 @@ public final class JvavTranslator {
                     break;
                 }
                 case BLOCK_COMMENT: {
+                    // 优先检测注释结束
+                    if (c == '*' && i + 1 < n && s.charAt(i + 1) == '/') {
+                        out.append("*/");
+                        i += 2;
+                        st = State.CODE;
+                        inJavadoc = false;
+                        break;
+                    }
+
+                    // 在 Javadoc 中尝试替换 @... 或 {@... 标签
+                    if (inJavadoc) {
+                        String matched = tryMatch(s, i, javadocTagKeys);
+                        if (matched != null) {
+                            out.append(map.get(matched));
+                            i += matched.length();
+                            break;
+                        }
+                    }
+
                     out.append(c);
-                    if (c == '*' && i + 1 < n && s.charAt(i + 1) == '/') { out.append('/'); i += 2; st = State.CODE; }
-                    else { i++; }
+                    i++;
                     break;
                 }
                 case STR_DQ: {
@@ -178,7 +215,7 @@ public final class JvavTranslator {
         int n = s.length();
         for (String k : keysByLenDesc) {
             int klen = k.length();
-            if (klen <= 0) continue;
+            if (klen == 0) continue;
             if (pos + klen > n) continue;
             // 如果是标识符型键，确保不在标识符中间（此分支通常不会触发，因为 CODE 分支已处理）
             if (isIdentifierLike(k)) {

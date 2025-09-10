@@ -9,7 +9,7 @@ public final class Aliases {
             "-d","-classpath","-cp","-encoding","-source","-target","--release",
             "-processor","-processorpath","-s","-sourcepath","--module-path","--add-modules",
             "-Xlint","-A","-o","-jar","-main",
-            "-implicit","-bootclasspath",
+            "-implicit","-bootclasspath","-gensrc",
             // 中文别名（解析后会转换为标准项）
             "-输出目录","--输出目录","-类路径","--类路径","-依赖路径","-库路径","-依赖","-字符集","-文件编码",
             "-源","--源","-源级别","-语法级别","-语言级别",
@@ -18,7 +18,7 @@ public final class Aliases {
             "-主类","--主类","-入口类","-入口",
             "-打包","--打包","-生成jar","-输出jar",
             "-注解处理器","-注解处理器路径","-源码路径","-生成源目录","-模块路径","-添加模块",
-            "-gensrc","-生成java源","-导出java源","-导出源码"
+            "-生成java源","-导出java源","-导出源码"
     };
 
     private static final Map<String,String> CN_ALIAS = new HashMap<>();
@@ -95,6 +95,10 @@ public final class Aliases {
         CN_ALIAS.put("-保留参数名", "-parameters");
         CN_ALIAS.put("-引导类路径", "-bootclasspath");
         CN_ALIAS.put("-隐式编译", "-implicit");
+        // jvav 特有
+        CN_ALIAS.put("-生成java源", "-gensrc");
+        CN_ALIAS.put("-导出java源", "-gensrc");
+        CN_ALIAS.put("-导出源码", "-gensrc");
     }
 
     public static String normalize(String opt) {
@@ -111,4 +115,3 @@ public final class Aliases {
         return false;
     }
 }
-
